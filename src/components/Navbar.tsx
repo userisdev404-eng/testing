@@ -7,6 +7,8 @@ const links = [
   { href: "/register", label: "Register" },
   { href: "/booking", label: "Book a Table" },
   { href: "/admin", label: "Dashboard" },
+  { href: "/terms-of-service", label: "Terms of Service" },
+  { href: "/privacy-policy", label: "Privacy Policy" },
 ];
 
 export default function Navbar() {
