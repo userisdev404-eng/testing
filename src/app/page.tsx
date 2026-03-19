@@ -1,22 +1,5 @@
 import Link from "next/link";
 
-const features = [
-  {
-    href: "/register",
-    icon: "store",
-    color: "text-blue-600",
-    title: "Register Restaurant",
-    desc: "Add your restaurant to the platform. Set operating hours, table capacity, and cuisine type.",
-  },
-  {
-    href: "/booking",
-    icon: "event_seat",
-    color: "text-green-600",
-    title: "Make a Reservation",
-    desc: 'Search and book tables at your favorite restaurants. Select date, time, and party size easily.',
-  },
-];
-
 const apiEndpoints = [
   { method: "GET", color: "bg-blue-50 text-blue-700", path: "/api/v3/HealthCheck", desc: "Check if the booking server is online" },
   { method: "POST", color: "bg-green-50 text-green-700", path: "/api/v3/BatchAvailabilityLookup", desc: "Query available time slots" },
