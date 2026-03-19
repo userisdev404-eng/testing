@@ -36,6 +36,7 @@ interface BookingResult {
 export default function BookingPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [selected, setSelected] = useState<Restaurant | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [step, setStep] = useState(1);
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [partySize, setPartySize] = useState(2);
@@ -50,6 +51,13 @@ export default function BookingPage() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+
+  // Filter restaurants based on search
+  const filteredRestaurants = restaurants.filter(r =>
+    r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.cuisine_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.address.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   useEffect(() => {
     fetch("/api/restaurants").then((r) => r.json()).then(setRestaurants);
@@ -132,249 +140,364 @@ export default function BookingPage() {
   const steps = ["Restaurant", "Date & Time", "Details", "Confirmed"];
 
   return (
-    <div className="max-w-[1100px] mx-auto px-6 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-[350px_1fr] gap-6 items-start">
-        {/* Map Card */}
-        <div className="bg-white rounded-xl shadow overflow-hidden sticky top-20">
-          <div className="h-48 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-            <span className="material-icons text-5xl text-red-500">place</span>
-          </div>
-          <div className="p-5">
-            <h3 className="text-lg font-medium">{selected?.name || "Select a Restaurant"}</h3>
-            <div className="flex items-center gap-1 text-yellow-400 text-sm mt-1 mb-2">
-              {[1, 2, 3, 4].map((i) => (<span key={i} className="material-icons text-base">star</span>))}
-              <span className="material-icons text-base">star_half</span>
-              <span className="text-gray-500 ml-1">4.5 (128)</span>
-            </div>
-            <div className="flex items-start gap-1 text-sm text-gray-500 mb-2">
-              <span className="material-icons text-base mt-0.5">location_on</span>
-              {selected?.address || "—"}
-            </div>
-            <div className="flex items-center gap-1 text-sm text-gray-500 mb-2">
-              <span className="material-icons text-base">schedule</span>
-              {selected ? `${selected.open_time} — ${selected.close_time}` : "—"}
-            </div>
-            <div className="flex items-center gap-1 text-sm text-gray-500">
-              <span className="material-icons text-base">restaurant_menu</span>
-              {selected?.cuisine_type || "—"}
-            </div>
-          </div>
-          <div className="text-center py-3 border-t text-xs text-gray-400">
-            Powered by <span className="text-blue-500 font-medium">Reserve with Google</span>
+    <div className="min-h-screen bg-gradient-to-b from-white via-blue-50 to-white overflow-x-hidden">
+      {/* Hero Banner */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-8 sm:py-12">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-3xl sm:text-4xl font-bold mb-2">Reserve a Table</h1>
+            <p className="text-blue-100">Find and book your favorite restaurant</p>
           </div>
         </div>
+      </div>
 
-        {/* Booking Widget */}
-        <div className="bg-white rounded-xl shadow overflow-hidden">
-          {/* Header */}
-          <div className="bg-blue-500 text-white px-6 py-5 flex items-center gap-3">
-            <span className="material-icons text-3xl">event_seat</span>
-            <h2 className="text-xl font-medium">Reserve a table</h2>
-          </div>
-
-          {/* Step Indicator */}
-          <div className="flex items-center justify-center py-5 border-b">
-            {steps.map((label, i) => (
-              <div key={label} className="flex items-center">
-                {i > 0 && <div className={`w-10 h-0.5 mx-2 ${i < step ? "bg-green-500" : "bg-gray-200"}`} />}
-                <div className="flex items-center gap-2">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium border-2 ${
-                    i + 1 === step ? "border-blue-500 bg-blue-500 text-white"
-                      : i + 1 < step ? "border-green-500 bg-green-500 text-white"
-                        : "border-gray-300 text-gray-400"
-                  }`}>
-                    {i + 1 < step ? <span className="material-icons text-sm">check</span> : i + 1}
-                  </div>
-                  <span className={`text-xs ${i + 1 === step ? "text-blue-500 font-medium" : i + 1 < step ? "text-green-500" : "text-gray-400"}`}>
-                    {label}
-                  </span>
-                </div>
+      {/* Main Booking Widget */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12 overflow-x-hidden">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 sm:px-8 py-6 sm:py-8 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <span className="material-icons text-4xl flex-shrink-0">event_seat</span>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-2xl sm:text-3xl font-bold">Make Your Reservation</h2>
+                <p className="text-blue-100 text-sm">Easy online booking in 3 steps</p>
               </div>
-            ))}
-          </div>
+            </div>
 
-          <div className="p-6">
-            {/* Step 1: Select Restaurant */}
-            {step === 1 && (
-              <div>
-                <h3 className="font-medium mb-4">Choose a restaurant</h3>
-                {restaurants.length === 0 ? (
-                  <div className="text-center py-10 text-gray-400">
-                    <span className="material-icons text-6xl text-gray-200">store</span>
-                    <p className="mt-2">No restaurants registered yet.</p>
-                    <Link href="/register" className="inline-flex items-center gap-2 mt-3 px-5 py-2 bg-blue-500 text-white rounded-full text-sm no-underline">Register One</Link>
+            {/* Step Indicator */}
+            <div className="px-6 sm:px-8 py-6 border-b border-gray-200 bg-gray-50 overflow-x-auto">
+              <div className="flex items-center justify-between gap-2 min-w-max sm:min-w-0">
+                {steps.map((label, i) => (
+                  <div key={label} className="flex flex-col items-center flex-1">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold mb-2 transition-all flex-shrink-0 ${
+                      i + 1 === step ? "bg-blue-600 text-white shadow-lg scale-110" 
+                        : i + 1 < step ? "bg-green-500 text-white"
+                          : "bg-gray-300 text-white"
+                    }`}>
+                      {i + 1 < step ? <span className="material-icons text-lg">check</span> : i + 1}
+                    </div>
+                    <span className={`text-xs sm:text-sm font-medium text-center line-clamp-2 ${
+                      i + 1 === step ? "text-blue-600" 
+                        : i + 1 < step ? "text-green-600"
+                          : "text-gray-400"
+                    }`}>
+                      {label}
+                    </span>
                   </div>
-                ) : (
-                  <>
-                    <select
-                      value={selected?.id || ""}
-                      onChange={(e) => setSelected(restaurants.find((r) => r.id === e.target.value) || null)}
-                      className="w-full px-3.5 py-3 border border-gray-300 rounded-lg text-sm focus:border-blue-500 outline-none mb-4"
-                    >
-                      <option value="">Select a restaurant...</option>
-                      {restaurants.map((r) => (
-                        <option key={r.id} value={r.id}>{r.name} — {r.cuisine_type}</option>
-                      ))}
-                    </select>
-                    <button disabled={!selected} onClick={() => setStep(2)}
-                      className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-full text-sm font-medium hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
-                      Continue <span className="material-icons text-lg">arrow_forward</span>
-                    </button>
-                  </>
-                )}
+                ))}
               </div>
-            )}
+            </div>
 
-            {/* Step 2: Date & Time */}
-            {step === 2 && (
-              <div>
-                <h3 className="font-medium mb-4">Select date, time & party size</h3>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1.5">Date</label>
-                    <input type="date" value={date} min={new Date().toISOString().split("T")[0]}
-                      onChange={(e) => { setDate(e.target.value); }}
-                      className="w-full px-3.5 py-3 border border-gray-300 rounded-lg text-sm focus:border-blue-500 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1.5">Party Size</label>
-                    <input type="number" value={partySize} min={selected?.party_size_min || 1} max={selected?.party_size_max || 10}
-                      onChange={(e) => { setPartySize(parseInt(e.target.value)); }}
-                      className="w-full px-3.5 py-3 border border-gray-300 rounded-lg text-sm focus:border-blue-500 outline-none" />
-                  </div>
-                </div>
+            <div className="px-6 sm:px-8 py-8 overflow-x-hidden">
+              {/* Step 1: Select Restaurant */}
+              {step === 1 && (
+                <div>
+                  <h3 className="text-2xl font-bold mb-6 text-gray-900">Choose Your Restaurant</h3>
+                  {restaurants.length === 0 ? (
+                    <div className="text-center py-16">
+                      <div className="inline-block p-6 bg-gray-100 rounded-full mb-4">
+                        <span className="material-icons text-6xl text-gray-400">store</span>
+                      </div>
+                      <p className="text-lg text-gray-600 mb-4">No restaurants registered yet.</p>
+                      <Link href="/register" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-full font-semibold no-underline hover:bg-blue-700 transition-colors">
+                        <span className="material-icons">add</span> Register Restaurant
+                      </Link>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Search Bar */}
+                      <div className="mb-6">
+                        <div className="relative">
+                          <span className="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">search</span>
+                          <input 
+                            type="text" 
+                            placeholder="Search by restaurant name, cuisine, or location..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl text-base focus:border-blue-600 outline-none transition-colors"
+                          />
+                        </div>
+                        {searchTerm && (
+                          <p className="text-sm text-gray-500 mt-2">
+                            Found {filteredRestaurants.length} restaurant{filteredRestaurants.length !== 1 ? 's' : ''}
+                          </p>
+                        )}
+                      </div>
 
-                {slotsLoading && (
-                  <div className="flex justify-center py-10">
-                    <div className="w-10 h-10 border-3 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
-                  </div>
-                )}
-
-                {!slotsLoading && slots.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-2">Available Times</label>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                      {slots.map((s, i) => {
-                        const time = new Date(s.slot.start_sec);
-                        const timeStr = time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                        return (
-                          <div key={i}
-                            className={`slot-pill ${s.available ? "" : "unavailable"} ${selectedSlot === s ? "selected" : ""}`}
-                            onClick={() => s.available && setSelectedSlot(s)}
-                            title={s.available ? `${s.spots_open}/${s.spots_total} tables` : "Fully booked"}>
-                            {timeStr}
+                      {/* Restaurant List */}
+                      <div className="space-y-3 mb-6 max-h-96 overflow-y-auto">
+                        {filteredRestaurants.length === 0 ? (
+                          <div className="text-center py-8">
+                            <span className="material-icons text-5xl text-gray-300">search_off</span>
+                            <p className="text-gray-600 mt-3">No restaurants match your search</p>
                           </div>
-                        );
-                      })}
+                        ) : (
+                          filteredRestaurants.map((r) => (
+                            <button
+                              key={r.id}
+                              onClick={() => setSelected(r)}
+                              className={`w-full p-4 rounded-xl border-2 transition-all text-left hover:shadow-md ${
+                                selected?.id === r.id 
+                                  ? "border-blue-600 bg-blue-50"
+                                  : "border-gray-200 hover:border-blue-300"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-bold text-gray-900 text-base sm:text-lg line-clamp-1">{r.name}</h4>
+                                  <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                                    <span className="material-icons text-base flex-shrink-0">restaurant_menu</span>
+                                    <span className="line-clamp-1">{r.cuisine_type}</span>
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-0.5 text-yellow-400 flex-shrink-0">
+                                  {[1, 2, 3, 4].map((i) => (
+                                    <span key={i} className="material-icons text-lg">star</span>
+                                  ))}
+                                  <span className="text-gray-400 text-xs ml-1">4.5</span>
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
+                                <span className="material-icons text-base flex-shrink-0">location_on</span>
+                                <span className="line-clamp-1">{r.address}</span>
+                              </p>
+                            </button>
+                          ))
+                        )}
+                      </div>
+
+                      <button 
+                        disabled={!selected} 
+                        onClick={() => setStep(2)}
+                        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-xl text-lg font-bold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Continue <span className="material-icons">arrow_forward</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Step 2: Date & Time */}
+              {step === 2 && (
+                <div>
+                  <h3 className="text-2xl font-bold mb-6 text-gray-900">Select Date & Time</h3>
+                  <div className="space-y-5 mb-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Date</label>
+                      <input 
+                        type="date" 
+                        value={date} 
+                        min={new Date().toISOString().split("T")[0]}
+                        onChange={(e) => { setDate(e.target.value); }}
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-base focus:border-blue-600 outline-none transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Party Size</label>
+                      <select 
+                        value={partySize} 
+                        onChange={(e) => { setPartySize(parseInt(e.target.value)); }}
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-base focus:border-blue-600 outline-none transition-colors"
+                      >
+                        {Array.from({length: (selected?.party_size_max || 10) - (selected?.party_size_min || 1) + 1}, (_, i) => i + (selected?.party_size_min || 1)).map(size => (
+                          <option key={size} value={size}>{size} {size === 1 ? 'Guest' : 'Guests'}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
-                )}
 
-                {!slotsLoading && slots.length === 0 && (
-                  <div className="text-center py-8 text-gray-400">
-                    <span className="material-icons text-4xl text-gray-200">event_busy</span>
-                    <p className="mt-2">No available slots for this date.</p>
-                  </div>
-                )}
-
-                <div className="flex gap-3 mt-5">
-                  <button onClick={() => setStep(1)} className="flex items-center gap-2 px-5 py-2.5 bg-white text-gray-600 border border-gray-300 rounded-full text-sm font-medium hover:bg-gray-50">
-                    <span className="material-icons text-lg">arrow_back</span> Back
-                  </button>
-                  <button disabled={!selectedSlot} onClick={() => setStep(3)}
-                    className="flex-1 flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-500 text-white rounded-full text-sm font-medium hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
-                    Continue <span className="material-icons text-lg">arrow_forward</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Guest Details */}
-            {step === 3 && (
-              <div>
-                <h3 className="font-medium mb-4">Your details</h3>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1.5">First Name *</label>
-                    <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="John"
-                      className="w-full px-3.5 py-3 border border-gray-300 rounded-lg text-sm focus:border-blue-500 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1.5">Last Name *</label>
-                    <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Doe"
-                      className="w-full px-3.5 py-3 border border-gray-300 rounded-lg text-sm focus:border-blue-500 outline-none" />
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-500 mb-1.5">Email *</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@example.com"
-                    className="w-full px-3.5 py-3 border border-gray-300 rounded-lg text-sm focus:border-blue-500 outline-none" />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-500 mb-1.5">Phone *</label>
-                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+94 77 123 4567"
-                    className="w-full px-3.5 py-3 border border-gray-300 rounded-lg text-sm focus:border-blue-500 outline-none" />
-                </div>
-                <div className="flex items-center gap-2 mb-4 text-sm text-gray-500">
-                  <input type="checkbox" defaultChecked id="policy" />
-                  <label htmlFor="policy">I agree to the restaurant&apos;s cancellation policy</label>
-                </div>
-                <div className="flex gap-3">
-                  <button onClick={() => setStep(2)} className="flex items-center gap-2 px-5 py-2.5 bg-white text-gray-600 border border-gray-300 rounded-full text-sm font-medium hover:bg-gray-50">
-                    <span className="material-icons text-lg">arrow_back</span> Back
-                  </button>
-                  <button onClick={confirmBooking} disabled={bookingLoading}
-                    className="flex-1 flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-500 text-white rounded-full text-sm font-medium hover:bg-blue-600 disabled:bg-gray-300 transition-colors">
-                    {bookingLoading ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <span className="material-icons text-lg">check</span>
-                    )}
-                    {bookingLoading ? "Booking..." : "Confirm Reservation"}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 4: Confirmation */}
-            {step === 4 && booking && (
-              <div className="text-center py-5">
-                <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5">
-                  <span className="material-icons text-5xl text-green-500">check</span>
-                </div>
-                <h3 className="text-xl font-medium mb-2">Reservation Confirmed!</h3>
-                <p className="text-gray-500 mb-5">Your table has been reserved. A confirmation has been sent.</p>
-
-                <div className="bg-gray-50 rounded-lg p-4 text-left mb-5">
-                  {[
-                    ["Booking ID", booking.booking.booking_id.substring(0, 8) + "..."],
-                    ["Restaurant", selected?.name],
-                    ["Date", new Date(booking.booking.slot.start_sec).toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" })],
-                    ["Time", new Date(booking.booking.slot.start_sec).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })],
-                    ["Party Size", booking.booking.slot.party_size + " guests"],
-                    ["Guest", `${firstName} ${lastName}`],
-                  ].map(([label, value]) => (
-                    <div key={label} className="flex justify-between py-2 border-b border-gray-200 last:border-0 text-sm">
-                      <span className="text-gray-500">{label}</span>
-                      <span className="font-medium">{value}</span>
+                  {slotsLoading && (
+                    <div className="flex justify-center py-12">
+                      <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
                     </div>
-                  ))}
-                  <div className="flex justify-between py-2 text-sm">
-                    <span className="text-gray-500">Status</span>
-                    <span className="px-3 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium">CONFIRMED</span>
+                  )}
+
+                  {!slotsLoading && slots.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-4">Available Times</label>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-6">
+                        {slots.map((s, i) => {
+                          const time = new Date(parseInt(s.slot.start_sec) * 1000);
+                          const timeStr = time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                          return (
+                            <button
+                              key={i}
+                              onClick={() => s.available && setSelectedSlot(s)}
+                              disabled={!s.available}
+                              className={`p-3 rounded-lg border-2 text-sm font-semibold transition-all ${
+                                selectedSlot === s 
+                                  ? "bg-blue-600 text-white border-blue-600 scale-105"
+                                  : s.available 
+                                    ? "bg-white text-gray-900 border-gray-300 hover:border-blue-600"
+                                    : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                              }`}
+                              title={s.available ? `${s.spots_open}/${s.spots_total} tables` : "Fully booked"}
+                            >
+                              {timeStr}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {!slotsLoading && slots.length === 0 && (
+                    <div className="text-center py-12">
+                      <div className="inline-block p-4 bg-yellow-100 rounded-full mb-3">
+                        <span className="material-icons text-5xl text-yellow-600">event_busy</span>
+                      </div>
+                      <p className="text-lg text-gray-600">No available slots for this date.</p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 mt-8">
+                    <button 
+                      onClick={() => setStep(1)} 
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl text-base font-semibold hover:bg-gray-300 transition-colors"
+                    >
+                      <span className="material-icons">arrow_back</span> Back
+                    </button>
+                    <button 
+                      disabled={!selectedSlot} 
+                      onClick={() => setStep(3)}
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-base font-semibold hover:bg-blue-700 disabled:bg-gray-300 transition-colors"
+                    >
+                      Continue <span className="material-icons">arrow_forward</span>
+                    </button>
                   </div>
                 </div>
+              )}
 
-                <div className="flex gap-3 justify-center">
-                  <button onClick={reset} className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white rounded-full text-sm font-medium hover:bg-blue-600">
-                    <span className="material-icons text-lg">add</span> Book Another
-                  </button>
-                  <Link href="/admin" className="flex items-center gap-2 px-5 py-2.5 bg-white text-blue-500 border border-gray-300 rounded-full text-sm font-medium hover:bg-blue-50 no-underline">
-                    <span className="material-icons text-lg">dashboard</span> View Dashboard
-                  </Link>
+              {/* Step 3: Guest Details */}
+              {step === 3 && (
+                <div>
+                  <h3 className="text-2xl font-bold mb-6 text-gray-900">Your Details</h3>
+                  <div className="space-y-4 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">First Name *</label>
+                        <input 
+                          type="text" 
+                          value={firstName} 
+                          onChange={(e) => setFirstName(e.target.value)} 
+                          placeholder="John"
+                          className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-base focus:border-blue-600 outline-none transition-colors"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name *</label>
+                        <input 
+                          type="text" 
+                          value={lastName} 
+                          onChange={(e) => setLastName(e.target.value)} 
+                          placeholder="Doe"
+                          className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-base focus:border-blue-600 outline-none transition-colors"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Email *</label>
+                      <input 
+                        type="email" 
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)} 
+                        placeholder="john@example.com"
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-base focus:border-blue-600 outline-none transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Phone *</label>
+                      <input 
+                        type="tel" 
+                        value={phone} 
+                        onChange={(e) => setPhone(e.target.value)} 
+                        placeholder="+94 77 123 4567"
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-base focus:border-blue-600 outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 mb-6 p-4 bg-blue-50 rounded-xl">
+                    <input type="checkbox" defaultChecked id="policy" className="mt-1" />
+                    <label htmlFor="policy" className="text-sm text-gray-700">I agree to the restaurant&apos;s cancellation policy</label>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => setStep(2)} 
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl text-base font-semibold hover:bg-gray-300 transition-colors"
+                    >
+                      <span className="material-icons">arrow_back</span> Back
+                    </button>
+                    <button 
+                      onClick={confirmBooking} 
+                      disabled={bookingLoading}
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-base font-semibold hover:bg-blue-700 disabled:bg-gray-300 transition-colors"
+                    >
+                      {bookingLoading ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Confirming...
+                        </>
+                      ) : (
+                        <>
+                          <span className="material-icons">check</span>
+                          Confirm
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+              {/* Step 4: Confirmation */}
+              {step === 4 && booking && (
+                <div className="text-center py-8">
+                  <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6 animate-pulse">
+                    <span className="material-icons text-6xl text-green-600">check_circle</span>
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-2">Reservation Confirmed!</h3>
+                  <p className="text-gray-600 mb-8 text-lg">Your table has been reserved successfully.</p>
+
+                  <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 sm:p-8 mb-8 border-2 border-green-200">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {[
+                        ["Booking ID", booking.booking.booking_id.substring(0, 12)],
+                        ["Restaurant", selected?.name],
+                        ["Date", new Date(parseInt(booking.booking.slot.start_sec) * 1000).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })],
+                        ["Time", new Date(parseInt(booking.booking.slot.start_sec) * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })],
+                        ["Guests", booking.booking.slot.party_size + " " + (booking.booking.slot.party_size === 1 ? "Guest" : "Guests")],
+                        ["Name", `${firstName} ${lastName}`],
+                      ].map(([label, value]) => (
+                        <div key={label} className="text-left">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{label}</p>
+                          <p className="text-lg font-bold text-gray-900">{value}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-center mt-6 pt-6 border-t-2 border-green-200">
+                      <span className="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-bold">✓ CONFIRMED</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button 
+                      onClick={reset} 
+                      className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+                    >
+                      <span className="material-icons">add</span> Book Another
+                    </button>
+                    <Link 
+                      href="/" 
+                      className="flex items-center justify-center gap-2 px-6 py-3 bg-white text-blue-600 border-2 border-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition-colors no-underline"
+                    >
+                      <span className="material-icons">home</span> Go Home
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
